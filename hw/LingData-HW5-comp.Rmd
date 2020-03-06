@@ -1,6 +1,8 @@
 ---
 title: 'HW 5: Correlations and linear models. Tests for categorial variables'
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -21,14 +23,22 @@ The dataset is available [https://raw.githubusercontent.com/agricolamz/2018-MAG_
 ### 1.0 
 Read the data from file to the variable `shva`.
 ```{r 1.0}
+shva <- read.csv(
+  "https://raw.githubusercontent.com/agricolamz/2018-MAG_R_course/master/data/duryagin_ReductionRussian.txt",
+  sep = '\t')
 
+shva
 ```
 
 ### 1.1 
 Scatterplot `f1` and `f2` using `ggplot()`. 
 Design it to look like the [following](https://raw.githubusercontent.com/agricolamz/2018-MAG_R_course/master/img/duryagin1.png).
 ```{r 1.1}
-
+ggplot(shva, aes(y = f1, x = f2, color = vowel)) +
+  geom_point() +
+  scale_x_continuous(trans = 'reverse') +
+  scale_y_continuous(trans = 'reverse') +
+  labs(title = 'f2 and f1 of the reduced and stressed vowels')
 ```
 
 ### 1.2 
@@ -36,20 +46,42 @@ Plot the boxplots of `f1` and `f2` for each vowel using `ggplot()`.
 Design it to look like [this](https://raw.githubusercontent.com/agricolamz/2018-MAG_R_course/master/img/duryagin2.png) and [this](https://raw.githubusercontent.com/agricolamz/2018-MAG_R_course/master/img/duryagin3.png).
 ```{r 1.2}
 # f1 boxplot
-
+ggplot(shva, aes(x = vowel, y = f1, fill = vowel)) +
+  geom_boxplot() + 
+  coord_flip() +
+  labs(title = 'f1 distribution in each vowel')
+```
+```{r}
 # f2 boxplot
+ggplot(shva, aes(x = vowel, y = f2, fill = vowel)) + 
+  geom_boxplot() + 
+  coord_flip() +
+  labs(title = 'f2 distribution in each vowel')
 ```
 
 ### 1.3 
 Calculate Pearson's correlation of `f1` and `f2` (all data)
 ```{r 1.3}
-
+cor.test(shva$f1, shva$f2, method = 'pearson')
 ```
 
 ### 
 1.4 Calculate Pearson's correlation of `f1` and `f2` for each vowel
 ```{r 1.4}
+vowels = c()
+results = c()
 
+for (v in unique(shva$vowel)) {
+  vowel <- shva %>%
+    filter(vowel == v)
+  t <- cor.test(vowel$f1, vowel$f2, method = 'pearson')
+  vowels <- c(vowels, v)
+  results <- c(results, t$estimate)
+}
+
+names(results) <- vowels
+
+results
 ```
 
 ## 2 Linear regressions
@@ -57,25 +89,32 @@ Calculate Pearson's correlation of `f1` and `f2` (all data)
 ### 2.1.1 
 Use the linear regression model to predict `f2` by `f1`.
 ```{r 2.1.1}
+model1 <- lm(data = shva, f2 ~ f1)
+summary(model1)
 
 ```
 
 ### 2.1.2 
 Write down the equation for f2 using coefficients from the model (e.g. $y =  b + kx$)
-```{r 2.1.2}
-
+```
+y = 1639.70215 - 0.42875*x
 ```
 
 ### 2.1.3 
 Provide the adjusted R$^2$
 ```{r 2.1.3}
-
+summary(model1)$adj.r.squared
 ```
 
 ### 2.1.4 
 Add the regression line in the scatterplot 1.1.
 ```{r 2.1.4}
-
+ggplot(shva, aes(y = f1, x = f2)) +
+  geom_point(aes(color = vowel)) +
+  scale_x_continuous(trans = 'reverse') +
+  scale_y_continuous(trans = 'reverse') +
+  labs(title = 'f2 and f1 of the reduced and stressed vowels') +
+  geom_smooth(method=lm)
 ```
 
 ### 2.1.5 
@@ -83,32 +122,37 @@ Make a scatter plot for `f1` and `f2` grouped by vowels.
 Use `ggplot()` and `facet_wrap()`.
 
 ```{r 2.1.5}
-
+ggplot(shva, aes(y = f1, x = f2)) +
+  geom_point(aes(color = vowel)) +
+  scale_x_continuous(trans = 'reverse') +
+  scale_y_continuous(trans = 'reverse') +
+  facet_wrap(~ vowel)
 ```
 
 ### 2.2.1 
 Use the linear regression model to predict `f2` by `f1` and `vowel`.
 ```{r 2.2.1}
-
+model2 <- lm(data = shva, f2 ~ f1 + vowel)
+summary(model2)
 ```
 
 ### 2.2.2 
 What is the intercept of the model?
 ```{r 2.2.2}
-
+model2$coefficients[1]
 ```
 
 ### 2.2.3 
 Provide the adjusted R$^2$
 ```{r 2.2.3}
-
+summary(model2)$adj.r.squared
 ```
 
 ### 2.2.4 
 Write down your general conclusions about the relationship between `f1`, `f2`, and `vowels`.
 
 ```
-
+When we take into consideration a categorical variable "vowel" ("a" is set reference level) it becomes evident that f2 is not as much dependent on "f1" as it is on "vowel". We can come to this conclusion by looking at the coefficient values -- "f1" is much lower than "vowelA" and "vowely". The value intercept also differs considerably from the previous case where we utilized just one variable "f1".
 ```
 
 ## 3. Dutch causative constructions
@@ -142,21 +186,42 @@ summary(d_caus)
 ```
 
 ### 3.1 
-We are going to test whether the association between `Aux` and other categorical variables (`Aux` ~ `CrSem`, `Aux` ~ `CeSem`, etc) is statistically significant. The assiciation with which variable should be analysed using Fisher's Exact Test and not using Pearson's Chi-squared Test? Is this association statistically significant?
-```{r 3.1}
+We are going to test whether the association between `Aux` and other categorical variables (`Aux` ~ `CrSem`, `Aux` ~ `CeSem`, etc) is statistically significant. The association with which variable should be analysed using Fisher's Exact Test and not using Pearson's Chi-squared Test? Is this association statistically significant?
 
+Answer:
+
+Chi-squared test may give give incorrect approximation when the expected frequency is small (< 5). In such cases Fisher's Exact Test is to be used. In the given dataset there is one such variable. If we use chi square on such data a warning is displayed.
+
+```{r}
+chisq.test(x = d_caus$Aux, y = d_caus$CeSynt)
 ```
+
+```{r}
+chisq.test(x = d_caus$Aux, y = d_caus$CeSynt)$expected
+```
+
+We see that there's a very small expected value present, so we use Fisher's test:
+
+```{r 3.1}
+fisher.test(x = d_caus$Aux, y = d_caus$CeSynt)
+```
+
+As we can see, p-value is less than $\alpha$. This means that the association between `Aux` and `CeSynt` is statistically significant.
 
 ### 3.2. 
 Test the hypothesis that `Aux` and `EPTrans` are not independent with the help of Pearson's Chi-squared Test. 
 ```{r 3.2}
-
+ept <- chisq.test(x = d_caus$Aux, y = d_caus$EPTrans)
+ept
 ```
+
+Answer:
+`Aux` and `EPTrans` are dependent because p-value is less than $\alpha$.
 
 ### 3.3 
 Provide expected frequencies for Pearson's Chi-squared Test of `Aux` and `EPTrans` variables.
 ```{r 3.3}
-
+ept$expected
 ```
 
 ### 3.4. 
@@ -170,35 +235,85 @@ $$
 one can find *odds ratio* as $(a/c)/(b/d)$.
 
 ```{r 3.4}
-
-
+cont_caus <- table(d_caus$Aux, d_caus$EPTrans)
+cont_caus
+cont_caus[1, 2]
 ```
+```{r}
+odds_ratio <- (cont_caus[1, 1]/cont_caus[2, 1]) / (cont_caus[1, 2]/cont_caus[2, 2])
+odds_ratio
+```
+
 
 ### 3.4.1 
 Find odds ratio for expected frequencies of `Aux` and `EPTrans`
 
-```{r 3.4.1}
+Answer:
+To better understand observed and expected frequencies I calculated this by hand.
+To find expected frequencies we can use use the following formula to evaluate the frequency in each cell $E_{ij} = \frac{T_i \cdot T_j}{N}$ where $E_{ij}$ is the cell in the i-th row and j-th column, $T_i$ is the total of i-th row, and $T_j$ is the total of j-th column. $N$ is the grand total of the table (i.e. the summ of all elements).
 
+Let us calculate the totals of rows and columns.
+```{r 3.4.1}
+T_i_1 <- 57 + 28
+T_i_2 <- 182 + 233
+T_j_1 <- 57 + 182
+T_j_2 <- 28 + 233
+N <- sum(cont_caus)
+paste(T_i_1, T_i_2, T_j_1, T_j_2, N)
 ```
+
+And expected frequency for each cell.
+```{r}
+cell_1_1 <- (T_i_1 * T_j_1) / N
+cell_1_2 <- (T_i_1 * T_j_2) / N
+cell_2_1 <- (T_i_2 * T_j_1) / N
+cell_2_2 <- (T_i_2 * T_j_2) / N
+exp_caus <- matrix(c(cell_1_1, cell_1_2, cell_2_1, cell_2_2), nrow = 2, byrow = TRUE)
+exp_caus
+```
+It matches the output of the function.
+
+```{r}
+exp_ept <- ept$expected
+exp_ept
+```
+
+The odds ratio for expected frequencies as follows:
+
+```{r}
+odds_ratio_exp <- (exp_ept[1, 1]/exp_ept[2, 1]) / (exp_ept[1, 2]/exp_ept[2, 2])
+odds_ratio_exp
+```
+
+We can see that the odds ratio is equal to one. 
+
 What can you say about odds ratio of expected frequencies for arbitrary data?
 
-### 3.5 
-Calculate effect size for this test using Cramer's V (phi).
-```{r 3.5}
+Answer:
+Odds ratio quantifies the strength of association between two events. If events are independent then odds ratio is equal to 1. If there's association it's greater or less than 1. So for arbitrary data it's equal to 1 because it's expected that there's no association.
 
+### 3.5 
+Calculate effect size for this test using Cramer'robots V (phi).
+
+```{r 3.5}
+library('rcompanion')
+cramerV(d_caus$Aux, d_caus$EPTrans)
 ```
 
 ### 3.6. 
 Report the results of independence test using the following template:
 ```
-We have / have not found a significant association between variables ... and ... (p < 0.001).  The odds of ... were ... times higher / lower in (group ....) than in (group ....). Effect size is large / medium / small (Cramer's V = ....).
+        Intr  Tr
+  doen    57  28
+  laten  182 233
+We have found a significant association between variables Aux and EPTrans (p < 0.001).  The odds of a predicate being intransitive were 2.6 times higher in doen group than in laten. Effect size is small (Cramer's V = 0.1745).
 ```
 
 ### 3.7 
 Visualize the distribution using mosaic plot.
 Use `mosaic()` function from `vcd` library.
 ```{r 3.7}
-
+mosaic(~ Aux + EPTrans, data=d_caus, shade=TRUE, legend=TRUE)
 ```
 
 Below is an example of how to use mosaic() with three variables.
@@ -209,11 +324,11 @@ Below is an example of how to use mosaic() with three variables.
 ### 3.8 
 Why is it not recommended to run multiple Chisq tests of independence on different variables within your dataset whithout adjusting for the multiplicity? (i.e. just testing all the pairs of variables one by one)  
 ```
-
+It is not recommended because the probabilyty to make a statistical error adds up with each additional value, thus we end up with an unreliable result.
 ```
 
 ### 3.9 
 Provide a short text (300 words) describing the hypothesis of this study and the results of your analysis.
-```{r 3.9}
-
+```
+The hypothesis of this study is that there's a relation between the choice of auxiliary verb and the transitivity of the predicate. We found out that it's 2.6 more likely for "laten" to be used with intransitive predicate than it is for "doen". We also found out that the association between these two variables is statistically significant. However, the effect size is small as evaluated by Cramer's V test. Having said that, empirically small effect size doesn't seem to be of little importance. It could be interpreted that the impact is small but not insignificant, judging by the results. 
 ```
