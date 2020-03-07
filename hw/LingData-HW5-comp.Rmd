@@ -114,7 +114,7 @@ ggplot(shva, aes(y = f1, x = f2)) +
   scale_x_continuous(trans = 'reverse') +
   scale_y_continuous(trans = 'reverse') +
   labs(title = 'f2 and f1 of the reduced and stressed vowels') +
-  geom_smooth(method=lm)
+  geom_smooth(method = lm)
 ```
 
 ### 2.1.5 
@@ -234,12 +234,11 @@ c & d
 $$
 one can find *odds ratio* as $(a/c)/(b/d)$.
 
-```{r 3.4}
+```{r}
 cont_caus <- table(d_caus$Aux, d_caus$EPTrans)
 cont_caus
-cont_caus[1, 2]
 ```
-```{r}
+```{r 3.4}
 odds_ratio <- (cont_caus[1, 1]/cont_caus[2, 1]) / (cont_caus[1, 2]/cont_caus[2, 2])
 odds_ratio
 ```
@@ -253,7 +252,7 @@ To better understand observed and expected frequencies I calculated this by hand
 To find expected frequencies we can use use the following formula to evaluate the frequency in each cell $E_{ij} = \frac{T_i \cdot T_j}{N}$ where $E_{ij}$ is the cell in the i-th row and j-th column, $T_i$ is the total of i-th row, and $T_j$ is the total of j-th column. $N$ is the grand total of the table (i.e. the summ of all elements).
 
 Let us calculate the totals of rows and columns.
-```{r 3.4.1}
+```{r}
 T_i_1 <- 57 + 28
 T_i_2 <- 182 + 233
 T_j_1 <- 57 + 182
@@ -280,7 +279,7 @@ exp_ept
 
 The odds ratio for expected frequencies as follows:
 
-```{r}
+```{r 3.4.1}
 odds_ratio_exp <- (exp_ept[1, 1]/exp_ept[2, 1]) / (exp_ept[1, 2]/exp_ept[2, 2])
 odds_ratio_exp
 ```
@@ -303,9 +302,6 @@ cramerV(d_caus$Aux, d_caus$EPTrans)
 ### 3.6. 
 Report the results of independence test using the following template:
 ```
-        Intr  Tr
-  doen    57  28
-  laten  182 233
 We have found a significant association between variables Aux and EPTrans (p < 0.001).  The odds of a predicate being intransitive were 2.6 times higher in doen group than in laten. Effect size is small (Cramer's V = 0.1745).
 ```
 
@@ -324,7 +320,7 @@ Below is an example of how to use mosaic() with three variables.
 ### 3.8 
 Why is it not recommended to run multiple Chisq tests of independence on different variables within your dataset whithout adjusting for the multiplicity? (i.e. just testing all the pairs of variables one by one)  
 ```
-It is not recommended because the probabilyty to make a statistical error adds up with each additional value, thus we end up with an unreliable result.
+It is not recommended because the probability to make a statistical error adds up with each additional value, thus we end up with an unreliable result.
 ```
 
 ### 3.9 
