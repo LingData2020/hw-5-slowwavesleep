@@ -152,7 +152,7 @@ summary(model2)$adj.r.squared
 Write down your general conclusions about the relationship between `f1`, `f2`, and `vowels`.
 
 ```
-When we take into consideration a categorical variable "vowel" ("a" is set reference level) it becomes evident that f2 is not as much dependent on "f1" as it is on "vowel". We can come to this conclusion by looking at the coefficient values -- "f1" is much lower than "vowelA" and "vowely". The value intercept also differs considerably from the previous case where we utilized just one variable "f1".
+When we take into consideration a categorical variable "vowel" ("a" is set as reference level) it becomes evident that f2 is not as much dependent on "f1" as it is on "vowel". We can come to this conclusion by looking at the coefficient values -- "f1" is much lower than "vowelA" and "vowely". The value intercept also differs considerably from the previous case where we utilized just one variable "f1".
 ```
 
 ## 3. Dutch causative constructions
@@ -293,7 +293,7 @@ Answer:
 Odds ratio quantifies the strength of association between two events. If events are independent then odds ratio is equal to 1. If there's association it's greater or less than 1. So for arbitrary data it's equal to 1 because it's expected that there's no association.
 
 ### 3.5 
-Calculate effect size for this test using Cramer'robots V (phi).
+Calculate effect size for this test using Cramer's V (phi).
 
 ```{r 3.5}
 library('rcompanion')
